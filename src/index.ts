@@ -21,12 +21,13 @@ const getColor = (device: slsTypes.Device) => {
 
 
 
-const init = () => {
+const init = (selector) => {
+    const svg = d3.select(selector);
 
-    var svg = d3.select("svg"),
-        width = +svg.attr("width"),
-        height = +svg.attr("height"),
-        node,
+    const { width, height } = svg.node().getBoundingClientRect();
+
+
+    let node,
         link,
         edgepaths,
         edgelabels;
@@ -163,6 +164,6 @@ const init = () => {
         d.fy = undefined;
     };
 
-}
+};
 
-init();
+init("svg");
