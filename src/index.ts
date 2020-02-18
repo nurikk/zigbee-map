@@ -27,6 +27,11 @@ const init = (selector) => {
     const { width, height } = svg.node().getBoundingClientRect();
 
 
+    svg.attr("viewBox", "0 0 " + width + " " + height)
+        .attr("preserveAspectRatio", "xMidYMid meet")
+
+
+
     let node,
         link,
         edgepaths,
@@ -34,7 +39,7 @@ const init = (selector) => {
 
     var simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id((d: d3Types.d3Node) => d.id).distance(50).strength(0.1))
-        .force("charge", d3.forceManyBody().distanceMin(10).strength(-300))
+        .force("charge", d3.forceManyBody().distanceMin(10).strength(-200))
         .force("center", d3.forceCenter(width / 2, height / 2));
     //@ts-ignore
     d3.json("./api/zigbee/devices", (error, data) => {
@@ -54,11 +59,30 @@ const init = (selector) => {
             .style("stroke", "#999")
             .style("stroke-opacity", "0.6")
             .style("stroke-width", "1px")
-            .attr('viewBox', `0 0 ${width} ${height}`)
             .attr('preserveAspectRatio', "xMinYMin meet");
 
-        link.append("title")
-            .text(function (d) { return d.type; });
+
+
+        
+
+        const drag = d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended);
+
+        node = svg.selectAll(".node")
+            .data(nodes)
+            .enter()
+            .append("g")
+            .attr("class", "node")
+            .style("cursor", "pointer")
+            .call(drag);
+
+        node.append("circle")
+            .attr("r", 5)
+            .attr("fill", (d: d3Types.d3Node) => getColor(d.device));
+        
+        node.append("title").text((d: d3Types.d3Node) => getTitle(d.device));
 
         edgepaths = svg.selectAll(".edgepath")
             .data(links)
@@ -89,27 +113,6 @@ const init = (selector) => {
             .style("pointer-events", "none")
             .attr("startOffset", "50%")
             .text((d: d3Types.d3Link) => d.linkQuality);
-
-        const drag = d3.drag()
-            .on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended);
-        node = svg.selectAll(".node")
-            .data(nodes)
-            .enter()
-            .append("g")
-            .attr("class", "node")
-            .style("cursor", "pointer")
-            .call(drag);
-
-        node.append("circle")
-            .attr("r", 5)
-
-            .attr("fill", (d: d3Types.d3Node) => getColor(d.device));
-
-
-
-        node.append("title").text((d: d3Types.d3Node) => getTitle(d.device));
 
         node.append("text")
             .attr("dy", -5)
@@ -163,7 +166,11 @@ const init = (selector) => {
         d.fx = undefined;
         d.fy = undefined;
     };
+    //////////////
+
+
+
 
 };
+document.addEventListener('DOMContentLoaded', () => init("#map"), false);
 
-init("svg");

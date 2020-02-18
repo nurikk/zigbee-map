@@ -10,6 +10,7 @@
             DeviceType["Coordinator"] = "Coordinator";
         })(DeviceType = slsTypes.DeviceType || (slsTypes.DeviceType = {}));
     })(slsTypes || (slsTypes = {}));
+    //# sourceMappingURL=types.js.map
 
     var GATEWAY = {
         ieeeAddr: '',
@@ -22,6 +23,7 @@
         },
         friendly_name: 'sls gateway'
     };
+    //# sourceMappingURL=consts.js.map
 
     var convert = function (file) {
         var coordinator = {
@@ -57,6 +59,7 @@
         });
         return graph;
     };
+    //# sourceMappingURL=convert.js.map
 
     var _a;
     var colorMap = (_a = {},
@@ -78,10 +81,12 @@
     var init = function (selector) {
         var svg = d3.select(selector);
         var _a = svg.node().getBoundingClientRect(), width = _a.width, height = _a.height;
+        svg.attr("viewBox", "0 0 " + width + " " + height)
+            .attr("preserveAspectRatio", "xMidYMid meet");
         var node, link, edgepaths, edgelabels;
         var simulation = d3.forceSimulation()
             .force("link", d3.forceLink().id(function (d) { return d.id; }).distance(50).strength(0.1))
-            .force("charge", d3.forceManyBody().distanceMin(10).strength(-300))
+            .force("charge", d3.forceManyBody().distanceMin(10).strength(-200))
             .force("center", d3.forceCenter(width / 2, height / 2));
         //@ts-ignore
         d3.json("./api/zigbee/devices", function (error, data) {
@@ -99,10 +104,22 @@
                 .style("stroke", "#999")
                 .style("stroke-opacity", "0.6")
                 .style("stroke-width", "1px")
-                .attr('viewBox', "0 0 " + width + " " + height)
                 .attr('preserveAspectRatio', "xMinYMin meet");
-            link.append("title")
-                .text(function (d) { return d.type; });
+            var drag = d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended);
+            node = svg.selectAll(".node")
+                .data(nodes)
+                .enter()
+                .append("g")
+                .attr("class", "node")
+                .style("cursor", "pointer")
+                .call(drag);
+            node.append("circle")
+                .attr("r", 5)
+                .attr("fill", function (d) { return getColor(d.device); });
+            node.append("title").text(function (d) { return getTitle(d.device); });
             edgepaths = svg.selectAll(".edgepath")
                 .data(links)
                 .enter()
@@ -128,21 +145,6 @@
                 .style("pointer-events", "none")
                 .attr("startOffset", "50%")
                 .text(function (d) { return d.linkQuality; });
-            var drag = d3.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended);
-            node = svg.selectAll(".node")
-                .data(nodes)
-                .enter()
-                .append("g")
-                .attr("class", "node")
-                .style("cursor", "pointer")
-                .call(drag);
-            node.append("circle")
-                .attr("r", 5)
-                .attr("fill", function (d) { return getColor(d.device); });
-            node.append("title").text(function (d) { return getTitle(d.device); });
             node.append("text")
                 .attr("dy", -5)
                 .text(function (d) { return getName(d.device); });
@@ -188,7 +190,8 @@
             d.fx = undefined;
             d.fy = undefined;
         };
+        //////////////
     };
-    init("svg");
+    document.addEventListener('DOMContentLoaded', function () { return init("#map"); }, false);
 
 }());
