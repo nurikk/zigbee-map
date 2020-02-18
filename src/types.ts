@@ -18,39 +18,25 @@ export namespace d3Types {
     };
 }
 export namespace slsTypes {
-
-    export enum PowerSourceType {
-        Main,
-        Battery
-    }
     export enum DeviceType {
-        EndDevice,
-        Router,
-        Coordinator
+        EndDevice = "EndDevice",
+        Router = "Router",
+        Coordinator = "Coordinator"
     }
 
     export type DeviceStats = {
         linkquality: number;
-        trSeqNum: number;
-        warning: string;
-        battery: number;
-        voltage: number;
     }
 
     export type Device = {
         ieeeAddr: string;
         last_seen: string;
         type: DeviceType;
-        powerSource: PowerSourceType;
 
         ManufName: string;
         ModelId: string;
         st: DeviceStats;
-        supported: number;
         friendly_name?: string;
         Rtg?: number[],
-    }
-    export type DevicesList = {
-        [k: string]: Device
     }
 }
