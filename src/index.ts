@@ -36,7 +36,7 @@ const init = () => {
         .force("charge", d3.forceManyBody().distanceMin(10).strength(-300))
         .force("center", d3.forceCenter(width / 2, height / 2));
     //@ts-ignore
-    d3.json("/api/zigbee/devices", (error, data) => {
+    d3.json("./api/zigbee/devices", (error, data) => {
         if (error) throw error;
         const { links, nodes } = convert(data);
         update(links, nodes);
