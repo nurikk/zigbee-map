@@ -22,9 +22,10 @@ const getColor = (device: slsTypes.Device) => {
 
 
 const init = (selector) => {
-    const svg = d3.select(selector);
-
-    const { width, height } = svg.node().getBoundingClientRect();
+    const root = d3.select(selector);
+    root.selectAll("*").remove();
+    const { width, height } = root.node().getBoundingClientRect();
+    const svg = root.append("svg");
 
 
     svg.attr("viewBox", "0 0 " + width + " " + height)
@@ -38,6 +39,8 @@ const init = (selector) => {
         edgelabels;
 
     var simulation = d3.forceSimulation()
+        .force("x", d3.forceX(width / 2).strength(.05))
+        .force("y", d3.forceY(height / 2).strength(.05))
         .force("link", d3.forceLink().id((d: d3Types.d3Node) => d.id).distance(50).strength(0.1))
         .force("charge", d3.forceManyBody().distanceMin(10).strength(-200))
         .force("center", d3.forceCenter(width / 2, height / 2));
@@ -58,12 +61,11 @@ const init = (selector) => {
             .attr("class", "link")
             .style("stroke", "#999")
             .style("stroke-opacity", "0.6")
-            .style("stroke-width", "1px")
-            .attr('preserveAspectRatio', "xMinYMin meet");
+            .style("stroke-width", "1px");
 
 
 
-        
+
 
         const drag = d3.drag()
             .on("start", dragstarted)
@@ -81,7 +83,7 @@ const init = (selector) => {
         node.append("circle")
             .attr("r", 5)
             .attr("fill", (d: d3Types.d3Node) => getColor(d.device));
-        
+
         node.append("title").text((d: d3Types.d3Node) => getTitle(d.device));
 
         edgepaths = svg.selectAll(".edgepath")

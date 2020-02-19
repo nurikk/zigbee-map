@@ -79,12 +79,16 @@
         return colorMap[device.type];
     };
     var init = function (selector) {
-        var svg = d3.select(selector);
-        var _a = svg.node().getBoundingClientRect(), width = _a.width, height = _a.height;
+        var root = d3.select(selector);
+        root.selectAll("*").remove();
+        var _a = root.node().getBoundingClientRect(), width = _a.width, height = _a.height;
+        var svg = root.append("svg");
         svg.attr("viewBox", "0 0 " + width + " " + height)
             .attr("preserveAspectRatio", "xMidYMid meet");
         var node, link, edgepaths, edgelabels;
         var simulation = d3.forceSimulation()
+            .force("x", d3.forceX(width / 2).strength(.05))
+            .force("y", d3.forceY(height / 2).strength(.05))
             .force("link", d3.forceLink().id(function (d) { return d.id; }).distance(50).strength(0.1))
             .force("charge", d3.forceManyBody().distanceMin(10).strength(-200))
             .force("center", d3.forceCenter(width / 2, height / 2));
@@ -103,8 +107,7 @@
                 .attr("class", "link")
                 .style("stroke", "#999")
                 .style("stroke-opacity", "0.6")
-                .style("stroke-width", "1px")
-                .attr('preserveAspectRatio', "xMinYMin meet");
+                .style("stroke-width", "1px");
             var drag = d3.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
@@ -193,5 +196,6 @@
         //////////////
     };
     document.addEventListener('DOMContentLoaded', function () { return init("#map"); }, false);
+    //# sourceMappingURL=index.js.map
 
 }());
