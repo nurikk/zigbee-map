@@ -101,7 +101,6 @@ const init = (selector) => {
 
     const loadData = () => {
         d3.json("/api/zigbee/devices").then((data) => {
-            // if (error) throw error;
             graph = convert(data);
             render();
         });
