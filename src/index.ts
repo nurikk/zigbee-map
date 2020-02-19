@@ -100,14 +100,14 @@ const init = (selector) => {
         });
 
     const loadData = () => {
-        d3.json("./api/zigbee/devices").then((data) => {
+        d3.json("/api/zigbee/devices").then((data) => {
             // if (error) throw error;
             graph = convert(data);
             render();
         });
     };
 
-    d3.json("./api/time").then((data: slsTypes.TimeInfo) => {
+    d3.json("/api/time").then((data: slsTypes.TimeInfo) => {
         timeInfo = data;
     }).finally(loadData);
 

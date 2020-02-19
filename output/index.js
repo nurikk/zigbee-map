@@ -10,7 +10,6 @@
             DeviceType["Coordinator"] = "Coordinator";
         })(DeviceType = slsTypes.DeviceType || (slsTypes.DeviceType = {}));
     })(slsTypes || (slsTypes = {}));
-    //# sourceMappingURL=types.js.map
 
     var GATEWAY = {
         ieeeAddr: '',
@@ -23,7 +22,6 @@
         },
         friendly_name: 'sls gateway'
     };
-    //# sourceMappingURL=consts.js.map
 
     var convert = function (file) {
         var coordinator = {
@@ -59,7 +57,6 @@
         });
         return graph;
     };
-    //# sourceMappingURL=convert.js.map
 
     var _a;
     var colorMap = (_a = {},
@@ -146,13 +143,13 @@
             d.fy = undefined;
         });
         var loadData = function () {
-            d3.json("./api/zigbee/devices").then(function (data) {
+            d3.json("/api/zigbee/devices").then(function (data) {
                 // if (error) throw error;
                 graph = convert(data);
                 render();
             });
         };
-        d3.json("./api/time").then(function (data) {
+        d3.json("/api/time").then(function (data) {
             timeInfo = data;
         }).finally(loadData);
         function render() {
