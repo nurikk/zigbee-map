@@ -18,9 +18,13 @@ const isOnline = (device: slsTypes.Device): boolean => {
     }
 }
 const getName = (device: slsTypes.Device): string => {
-    const { friendly_name, ieeeAddr } = device;
-    // const modelParts = ModelId.split('.'); // ${modelParts.pop()}
-    return friendly_name ? friendly_name : `${ieeeAddr.slice(-4)}`;
+    if (device.type == slsTypes.DeviceType.Coordinator) {
+        return '';
+    } else {
+        const { friendly_name, ieeeAddr } = device;
+        return friendly_name ? friendly_name : `${ieeeAddr.slice(-4)}`;
+    }
+    
 }
 const getTitle = (device: slsTypes.Device): string => {
     return `${device.ieeeAddr}\n${device.ManufName} ${device.ModelId}`;
@@ -39,7 +43,7 @@ const init = (selector) => {
 
 
     svg.attr("viewBox", "0 0 " + width + " " + height)
-        .attr("preserveAspectRatio", "xMidYMid meet")
+        .attr("preserveAspectRatio", "xMidYMid meet");
 
     let node,
         link,
@@ -157,7 +161,7 @@ const init = (selector) => {
             .attr('fill-opacity', 0)
             .attr('stroke-opacity', 0)
             .attr('id', (d, i) => `edgepath${i}`)
-            .style("pointer-events", "none");
+            .style("pointer-events", "none")
 
         edgelabels = svg.selectAll(".edgelabel")
             .data(links)
