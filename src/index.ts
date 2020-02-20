@@ -1,6 +1,7 @@
 import { d3Types, slsTypes } from "./types";
 import { convert } from "./convert";
 import { ForceLink } from "d3";
+import { getDarg } from "./drag";
 const colorMap = {
     [slsTypes.DeviceType.Coordinator]: 'blue',
     [slsTypes.DeviceType.Router]: 'green',
@@ -79,26 +80,6 @@ const init = (selector) => {
         .on("tick", ticked)
         .stop();
 
-    const drag = d3.drag()
-        .on("start", (d: any) => {
-            if (!d3.event.active) {
-                simulation.alphaTarget(0.3).restart()
-            }
-            d.fx = d.x;
-            d.fy = d.y;
-        })
-        .on("drag", (d: any) => {
-            d.fx = d3.event.x;
-            d.fy = d3.event.y;
-        })
-        .on("end", (d: any) => {
-            if (!d3.event.active) {
-                simulation.alphaTarget(0);
-            }
-            d.fx = undefined;
-            d.fy = undefined;
-        });
-
     const loadData = () => {
         d3.json("/api/zigbee/devices").then((data) => {
             graph = convert(data);
@@ -128,13 +109,42 @@ const init = (selector) => {
             .attr("class", "node")
             .style("cursor", "pointer")
             .attr('fill-opacity', (d: d3Types.d3Node) => isOnline(d.device) ? 1 : 0.4)
+            .call(getDarg(simulation));
 
-            // .attr('stroke-opacity', 0)
-            .call(drag);
+        const radialLineGenerator: any = d3.radialLine();
 
-        node.append("circle")
-            .attr("r", 5)
-            .attr("fill", (d: d3Types.d3Node) => getColor(d.device));
+        const r1 = 14;
+        const r2 = 5;
+
+        const radialpoints = [
+            [0, r1],
+            [Math.PI * 0.2, r2],
+            [Math.PI * 0.4, r1],
+            [Math.PI * 0.6, r2],
+            [Math.PI * 0.8, r1],
+            [Math.PI * 1, r2],
+            [Math.PI * 1.2, r1],
+            [Math.PI * 1.4, r2],
+            [Math.PI * 1.6, r1],
+            [Math.PI * 1.8, r2],
+            [Math.PI * 2, r1]
+        ];
+
+        const circle = d3.path();
+
+        circle.arc(0, 0, 5, 0, Math.PI * 2);
+
+        const radialData = radialLineGenerator(radialpoints);
+        node.append("path")
+            .attr("fill", (d: d3Types.d3Node) => getColor(d.device))
+            .attr("d", (d: d3Types.d3Node) => {
+                switch (d.device.type) {
+                    case slsTypes.DeviceType.Coordinator:
+                        return radialData
+                    default:
+                        return circle;
+                }
+            });
 
         node.append("title").text((d: d3Types.d3Node) => getTitle(d.device));
         node.append("text").attr("dy", -5).text((d: d3Types.d3Node) => getName(d.device));
@@ -146,7 +156,7 @@ const init = (selector) => {
             .attr('class', 'edgepath')
             .attr('fill-opacity', 0)
             .attr('stroke-opacity', 0)
-            .attr('id', function (d, i) { return 'edgepath' + i })
+            .attr('id', (d, i) => `edgepath${i}`)
             .style("pointer-events", "none");
 
         edgelabels = svg.selectAll(".edgelabel")
@@ -155,14 +165,14 @@ const init = (selector) => {
             .append('text')
             .style("pointer-events", "none")
             .attr('class', 'edgelabel')
-            .attr('id', function (d, i) { return 'edgelabel' + i })
+            .attr('id', (d, i) => `edgelabel${i}`)
             .attr('font-size', 10)
             .attr('fill', '#aaa')
             .attr("dy", "10");
 
 
         edgelabels.append('textPath')
-            .attr('xlink:href', (d, i) => '#edgepath' + i)
+            .attr('xlink:href', (d, i) => `#edgepath${i}`)
             .style("text-anchor", "middle")
             .style("pointer-events", "none")
             .attr("startOffset", "50%")
