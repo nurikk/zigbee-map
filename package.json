@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "rollup -c --config rollup.prod.config.js",
-    "watch": "rollup -cw  --config rollup.dev.config.js",
+    "build": "rollup -c",
+    "watch": "rollup -cw",
     "deploy": "gh-pages -d output"
   },
   "keywords": [],
