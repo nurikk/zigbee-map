@@ -2,6 +2,7 @@ import { d3Types, slsTypes } from "./types";
 import { convert } from "./convert";
 import { ForceLink } from "d3";
 import { getDarg } from "./drag";
+import { STAR, CIRCLE } from "./consts";
 const colorMap = {
     [slsTypes.DeviceType.Coordinator]: 'blue',
     [slsTypes.DeviceType.Router]: 'green',
@@ -24,7 +25,7 @@ const getName = (device: slsTypes.Device): string => {
         const { friendly_name, ieeeAddr } = device;
         return friendly_name ? friendly_name : `${ieeeAddr.slice(-4)}`;
     }
-    
+
 }
 const getTitle = (device: slsTypes.Device): string => {
     return `${device.ieeeAddr}\n${device.ManufName} ${device.ModelId}`;
@@ -115,38 +116,14 @@ const init = (selector) => {
             .attr('fill-opacity', (d: d3Types.d3Node) => isOnline(d.device) ? 1 : 0.4)
             .call(getDarg(simulation));
 
-        const radialLineGenerator: any = d3.radialLine();
-
-        const r1 = 14;
-        const r2 = 5;
-
-        const radialpoints = [
-            [0, r1],
-            [Math.PI * 0.2, r2],
-            [Math.PI * 0.4, r1],
-            [Math.PI * 0.6, r2],
-            [Math.PI * 0.8, r1],
-            [Math.PI * 1, r2],
-            [Math.PI * 1.2, r1],
-            [Math.PI * 1.4, r2],
-            [Math.PI * 1.6, r1],
-            [Math.PI * 1.8, r2],
-            [Math.PI * 2, r1]
-        ];
-
-        const circle = d3.path();
-
-        circle.arc(0, 0, 5, 0, Math.PI * 2);
-
-        const radialData = radialLineGenerator(radialpoints);
         node.append("path")
             .attr("fill", (d: d3Types.d3Node) => getColor(d.device))
             .attr("d", (d: d3Types.d3Node) => {
                 switch (d.device.type) {
                     case slsTypes.DeviceType.Coordinator:
-                        return radialData
+                        return STAR(14, 5);
                     default:
-                        return circle;
+                        return CIRCLE(5);
                 }
             });
 

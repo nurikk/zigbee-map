@@ -1,1 +1,250 @@
-!function(){"use strict";var t;!function(t){!function(t){t.EndDevice="EndDevice",t.Router="Router",t.Coordinator="Coordinator"}(t.DeviceType||(t.DeviceType={}))}(t||(t={}));var e,n,r,a={ieeeAddr:"Coordinator node",last_seen:(Date.now()/1e3).toString(),type:t.DeviceType.Coordinator,ManufName:"SLS gateway",ModelId:"",st:{linkquality:1},friendly_name:"sls gateway"},i=((e={})[t.DeviceType.Coordinator]="blue",e[t.DeviceType.Router]="green",e[t.DeviceType.EndDevice]="red",e),o=function(e){var o=d3.select(e);o.selectAll("*").remove();var d,c,s,l,u=o.node().getBoundingClientRect(),f=u.width,p=u.height,y=o.append("svg");y.attr("viewBox","0 0 "+f+" "+p).attr("preserveAspectRatio","xMidYMid meet");var v=d3.forceSimulation().force("x",d3.forceX(f/2).strength(.05)).force("y",d3.forceY(p/2).strength(.05)).force("link",d3.forceLink().id((function(t){return t.id})).distance(50).strength(.1)).force("charge",d3.forceManyBody().distanceMin(10).strength(-200)).force("center",d3.forceCenter(f/2,p/2)).on("tick",(function(){c.attr("x1",(function(t){return t.source.x})).attr("y1",(function(t){return t.source.y})).attr("x2",(function(t){return t.target.x})).attr("y2",(function(t){return t.target.y})),d.attr("transform",(function(t){return"translate("+t.x+", "+t.y+")"})),s.attr("d",(function(t){return"M "+t.source.x+" "+t.source.y+" L "+t.target.x+" "+t.target.y})),l.attr("transform",(function(t){if(t.target.x<t.source.x){var e=this.getBBox();return"rotate(180 "+(e.x+e.width/2)+" "+(e.y+e.height/2)+")"}return"rotate(0)"}))})).stop();d3.json("/api/time").then((function(t){r=t})).finally((function(){d3.json("/api/zigbee/devices").then((function(e){n=function(t){var e={id:"SLS GW",device:a},n={nodes:[e],links:[]};return Object.entries(t).forEach((function(t){var r=t[0],a=t[1];n.nodes.push({id:r,device:a}),Array.isArray(a.Rtg)&&a.Rtg.length?a.Rtg.forEach((function(t){n.links.push({source:r,target:t.toString(),linkQuality:a.st.linkquality})})):n.links.push({source:r,target:e.id,linkQuality:a.st.linkquality})})),n}(e),function(){var e=n.links,a=n.nodes;c=y.selectAll(".link").data(e).enter().append("line").attr("class","link").style("stroke","#999").style("stroke-opacity","0.6").style("stroke-width","1px"),d=y.selectAll(".node").data(a).enter().append("g").attr("class","node").style("cursor","pointer").attr("fill-opacity",(function(t){return e=t.device,!r||!r.ts||r.ts-parseInt(e.last_seen,10)<7200?1:.4;var e})).call(function(t){return d3.drag().on("start",(function(e){d3.event.active||t.alphaTarget(.3).restart(),e.fx=e.x,e.fy=e.y})).on("drag",(function(t){t.fx=d3.event.x,t.fy=d3.event.y})).on("end",(function(e){d3.event.active||t.alphaTarget(0),e.fx=void 0,e.fy=void 0}))}(v));var o=d3.radialLine(),u=[[0,14],[.2*Math.PI,5],[.4*Math.PI,14],[.6*Math.PI,5],[.8*Math.PI,14],[1*Math.PI,5],[1.2*Math.PI,14],[1.4*Math.PI,5],[1.6*Math.PI,14],[1.8*Math.PI,5],[2*Math.PI,14]],f=d3.path();f.arc(0,0,5,0,2*Math.PI);var p=o(u);d.append("path").attr("fill",(function(t){return e=t.device,i[e.type];var e})).attr("d",(function(e){switch(e.device.type){case t.DeviceType.Coordinator:return p;default:return f}})),d.append("title").text((function(t){return(e=t.device).ieeeAddr+"\n"+e.ManufName+" "+e.ModelId;var e})),d.append("text").attr("dy",-5).text((function(e){return function(e){if(e.type==t.DeviceType.Coordinator)return"";var n=e.friendly_name,r=e.ieeeAddr;return n||""+r.slice(-4)}(e.device)})),s=y.selectAll(".edgepath").data(e).enter().append("path").attr("class","edgepath").attr("fill-opacity",0).attr("stroke-opacity",0).attr("id",(function(t,e){return"edgepath"+e})).style("pointer-events","none"),(l=y.selectAll(".edgelabel").data(e).enter().append("text").style("pointer-events","none").attr("class","edgelabel").attr("id",(function(t,e){return"edgelabel"+e})).attr("font-size",10).attr("fill","#aaa").attr("dy","10")).append("textPath").attr("xlink:href",(function(t,e){return"#edgepath"+e})).style("text-anchor","middle").style("pointer-events","none").attr("startOffset","50%").text((function(t){return t.linkQuality})),v.nodes(a),v.force("link").links(e),v.restart()}()}))}))};document.addEventListener("DOMContentLoaded",(function(){return o("#map")}),!1)}();
+(function () {
+    'use strict';
+
+    var slsTypes;
+    (function (slsTypes) {
+        var DeviceType;
+        (function (DeviceType) {
+            DeviceType["EndDevice"] = "EndDevice";
+            DeviceType["Router"] = "Router";
+            DeviceType["Coordinator"] = "Coordinator";
+        })(DeviceType = slsTypes.DeviceType || (slsTypes.DeviceType = {}));
+    })(slsTypes || (slsTypes = {}));
+    //# sourceMappingURL=types.js.map
+
+    var GATEWAY = {
+        ieeeAddr: 'Coordinator node',
+        last_seen: (Date.now() / 1000).toString(),
+        type: slsTypes.DeviceType.Coordinator,
+        ManufName: 'SLS gateway',
+        ModelId: '',
+        st: {
+            linkquality: 1,
+        },
+        friendly_name: 'sls gateway'
+    };
+    var STAR = function (r1, r2) {
+        var radialLineGenerator = d3.radialLine();
+        var radialpoints = [
+            [0, r1],
+            [Math.PI * 0.2, r2],
+            [Math.PI * 0.4, r1],
+            [Math.PI * 0.6, r2],
+            [Math.PI * 0.8, r1],
+            [Math.PI * 1, r2],
+            [Math.PI * 1.2, r1],
+            [Math.PI * 1.4, r2],
+            [Math.PI * 1.6, r1],
+            [Math.PI * 1.8, r2],
+            [Math.PI * 2, r1]
+        ];
+        return radialLineGenerator(radialpoints);
+    };
+    var CIRCLE = function (radius) {
+        var circle = d3.path();
+        circle.arc(0, 0, radius, 0, Math.PI * 2);
+        return circle;
+    };
+    //# sourceMappingURL=consts.js.map
+
+    var convert = function (file) {
+        var coordinator = {
+            id: 'SLS GW',
+            device: GATEWAY
+        };
+        var graph = {
+            nodes: [coordinator],
+            links: []
+        };
+        Object.entries(file).forEach(function (_a) {
+            var deviceKey = _a[0], deviceData = _a[1];
+            graph.nodes.push({
+                id: deviceKey,
+                device: deviceData
+            });
+            if (Array.isArray(deviceData.Rtg) && deviceData.Rtg.length) {
+                deviceData.Rtg.forEach(function (route) {
+                    graph.links.push({
+                        source: deviceKey,
+                        target: route.toString(),
+                        linkQuality: deviceData.st.linkquality
+                    });
+                });
+            }
+            else {
+                graph.links.push({
+                    source: deviceKey,
+                    target: coordinator.id,
+                    linkQuality: deviceData.st.linkquality
+                });
+            }
+        });
+        return graph;
+    };
+    //# sourceMappingURL=convert.js.map
+
+    var getDarg = function (simulation) {
+        return d3.drag()
+            .on("start", function (d) {
+            if (!d3.event.active) {
+                simulation.alphaTarget(0.3).restart();
+            }
+            d.fx = d.x;
+            d.fy = d.y;
+        })
+            .on("drag", function (d) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        })
+            .on("end", function (d) {
+            if (!d3.event.active) {
+                simulation.alphaTarget(0);
+            }
+            d.fx = undefined;
+            d.fy = undefined;
+        });
+    };
+    //# sourceMappingURL=drag.js.map
+
+    var _a;
+    var colorMap = (_a = {},
+        _a[slsTypes.DeviceType.Coordinator] = 'blue',
+        _a[slsTypes.DeviceType.Router] = 'green',
+        _a[slsTypes.DeviceType.EndDevice] = 'red',
+        _a);
+    var graph;
+    var timeInfo;
+    var offlineTimeout = 3600 * 2;
+    var isOnline = function (device) {
+        if (timeInfo && timeInfo.ts) {
+            return timeInfo.ts - parseInt(device.last_seen, 10) < offlineTimeout;
+        }
+        else {
+            return true;
+        }
+    };
+    var getName = function (device) {
+        if (device.type == slsTypes.DeviceType.Coordinator) {
+            return '';
+        }
+        else {
+            var friendly_name = device.friendly_name, ieeeAddr = device.ieeeAddr;
+            return friendly_name ? friendly_name : "" + ieeeAddr.slice(-4);
+        }
+    };
+    var getTitle = function (device) {
+        return device.ieeeAddr + "\n" + device.ManufName + " " + device.ModelId;
+    };
+    var getColor = function (device) {
+        return colorMap[device.type];
+    };
+    var init = function (selector) {
+        var root = d3.select(selector);
+        root.selectAll("*").remove();
+        var _a = root.node().getBoundingClientRect(), width = _a.width, height = _a.height;
+        var svg = root.append("svg");
+        svg.attr("viewBox", "0 0 " + width + " " + height)
+            .attr("preserveAspectRatio", "xMidYMid meet");
+        var node, link, edgepaths, edgelabels;
+        var ticked = function () {
+            link
+                .attr("x1", function (d) { return d.source.x; })
+                .attr("y1", function (d) { return d.source.y; })
+                .attr("x2", function (d) { return d.target.x; })
+                .attr("y2", function (d) { return d.target.y; });
+            node
+                .attr("transform", function (d) { return "translate(" + d.x + ", " + d.y + ")"; });
+            edgepaths.attr('d', function (d) { return "M " + d.source.x + " " + d.source.y + " L " + d.target.x + " " + d.target.y; });
+            edgelabels.attr('transform', function (d) {
+                if (d.target.x < d.source.x) {
+                    var bbox = this.getBBox();
+                    var rx = bbox.x + bbox.width / 2;
+                    var ry = bbox.y + bbox.height / 2;
+                    return "rotate(180 " + rx + " " + ry + ")";
+                }
+                else {
+                    return 'rotate(0)';
+                }
+            });
+        };
+        var simulation = d3.forceSimulation()
+            .force("x", d3.forceX(width / 2).strength(.05))
+            .force("y", d3.forceY(height / 2).strength(.05))
+            .force("link", d3.forceLink().id(function (d) { return d.id; }).distance(50).strength(0.1))
+            .force("charge", d3.forceManyBody().distanceMin(10).strength(-200))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .on("tick", ticked)
+            .stop();
+        var loadData = function () {
+            d3.json("/api/zigbee/devices").then(function (data) {
+                graph = convert(data);
+                render();
+            });
+        };
+        d3.json("/api/time").then(function (data) {
+            timeInfo = data;
+        }).finally(loadData);
+        function render() {
+            var links = graph.links, nodes = graph.nodes;
+            link = svg.selectAll(".link")
+                .data(links)
+                .enter()
+                .append("line")
+                .attr("class", "link")
+                .style("stroke", "#999")
+                .style("stroke-opacity", "0.6")
+                .style("stroke-width", "1px");
+            node = svg.selectAll(".node")
+                .data(nodes)
+                .enter()
+                .append("g")
+                .attr("class", "node")
+                .style("cursor", "pointer")
+                .attr('fill-opacity', function (d) { return isOnline(d.device) ? 1 : 0.4; })
+                .call(getDarg(simulation));
+            node.append("path")
+                .attr("fill", function (d) { return getColor(d.device); })
+                .attr("d", function (d) {
+                switch (d.device.type) {
+                    case slsTypes.DeviceType.Coordinator:
+                        return STAR(14, 5);
+                    default:
+                        return CIRCLE(5);
+                }
+            });
+            node.append("title").text(function (d) { return getTitle(d.device); });
+            node.append("text").attr("dy", -5).text(function (d) { return getName(d.device); });
+            edgepaths = svg.selectAll(".edgepath")
+                .data(links)
+                .enter()
+                .append('path')
+                .attr('class', 'edgepath')
+                .attr('fill-opacity', 0)
+                .attr('stroke-opacity', 0)
+                .attr('id', function (d, i) { return "edgepath" + i; })
+                .style("pointer-events", "none");
+            edgelabels = svg.selectAll(".edgelabel")
+                .data(links)
+                .enter()
+                .append('text')
+                .style("pointer-events", "none")
+                .attr('class', 'edgelabel')
+                .attr('id', function (d, i) { return "edgelabel" + i; })
+                .attr('font-size', 10)
+                .attr('fill', '#aaa')
+                .attr("dy", "10");
+            edgelabels.append('textPath')
+                .attr('xlink:href', function (d, i) { return "#edgepath" + i; })
+                .style("text-anchor", "middle")
+                .style("pointer-events", "none")
+                .attr("startOffset", "50%")
+                .text(function (d) { return d.linkQuality; });
+            simulation.nodes(nodes);
+            simulation.force("link").links(links);
+            simulation.restart();
+        }
+    };
+    document.addEventListener('DOMContentLoaded', function () { return init("#map"); }, false);
+    //# sourceMappingURL=index.js.map
+
+}());
