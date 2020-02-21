@@ -30,7 +30,7 @@ const getName = (device: slsTypes.Device): string => {
 }
 const getTooltip = (device: slsTypes.Device): string => {
     const strings = [
-        `${device.ManufName} ${device.ModelId}`,
+        `${device.ManufName ? device.ManufName : ''} ${device.ModelId ? device.ModelId: ''}`,
         device.ieeeAddr,
         `LinkQuality: ${device.st.linkquality}`
     ]
