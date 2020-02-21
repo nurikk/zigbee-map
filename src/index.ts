@@ -1,12 +1,13 @@
 import { d3Types, slsTypes } from "./types";
 import { convert } from "./convert";
-import { ForceLink } from "d3";
+import { ForceLink, keys } from "d3";
 import { getDarg } from "./drag";
 import { STAR, CIRCLE } from "./consts";
+import { getSimulation } from "./simulation";
 const colorMap = {
     [slsTypes.DeviceType.Coordinator]: 'blue',
-    [slsTypes.DeviceType.Router]: 'green',
-    [slsTypes.DeviceType.EndDevice]: 'red',
+    [slsTypes.DeviceType.Router]: 'blue',
+    [slsTypes.DeviceType.EndDevice]: 'green',
 };
 let graph: d3Types.d3Graph;
 let timeInfo: slsTypes.TimeInfo;
@@ -27,20 +28,24 @@ const getName = (device: slsTypes.Device): string => {
     }
 
 }
-const getTitle = (device: slsTypes.Device): string => {
-    return `${device.ieeeAddr}\n${device.ManufName} ${device.ModelId}`;
+const getTooltip = (device: slsTypes.Device): string => {
+    const strings = [
+        `${device.ManufName} ${device.ModelId}`,
+        device.ieeeAddr,
+        `LinkQuality: ${device.st.linkquality}`
+    ]
+    return strings.join("<br/>");
 };
 const getColor = (device: slsTypes.Device): string => {
     return colorMap[device.type];
 };
 
-const init = (selector) => {
-
-
+const init = (selector: string) => {
     const root = d3.select(selector);
     root.selectAll("*").remove();
-    const { width, height } = root.node().getBoundingClientRect();
-    const svg = root.append("svg");
+
+    const { width, height } = (root.node() as HTMLElement).getBoundingClientRect(),
+        svg = root.append("svg");
 
 
     svg.attr("viewBox", "0 0 " + width + " " + height)
@@ -76,14 +81,7 @@ const init = (selector) => {
         });
     }
 
-    const simulation = d3.forceSimulation()
-        .force("x", d3.forceX(width / 2).strength(.05))
-        .force("y", d3.forceY(height / 2).strength(.05))
-        .force("link", d3.forceLink().id((d: d3Types.d3Node) => d.id).distance(50).strength(0.1))
-        .force("charge", d3.forceManyBody().distanceMin(10).strength(-200))
-        .force("center", d3.forceCenter(width / 2, height / 2))
-        .on("tick", ticked)
-        .stop();
+    const simulation = getSimulation(width, height).on("tick", ticked);
 
     const loadData = () => {
         d3.json("/api/zigbee/devices").then((data) => {
@@ -96,7 +94,37 @@ const init = (selector) => {
         timeInfo = data;
     }).finally(loadData);
 
-    function render() {
+    var Tooltip = root
+        .append("div")
+        .style("opacity", 0)
+        .style("position", "absolute")
+        .style("background-color", "white")
+        .style("border", "solid")
+        .style("border-width", "2px")
+        .style("border-radius", "5px")
+        .style("padding", "5px");
+    var mouseover = function (d) {
+        Tooltip
+            .style("opacity", 1)
+        d3.select(this)
+            // .style("stroke", "black")
+            .style("opacity", 1)
+    }
+
+    var mousemove = (d: d3Types.d3Node) => Tooltip.html(getTooltip(d.device))
+        .style("top", (d3.event.pageY - 10) + "px")
+        .style("left", (d3.event.pageX + 10) + "px");
+
+    var mouseleave = function (d) {
+        Tooltip
+            .style("opacity", 0)
+        d3.select(this)
+            .style("stroke", "none")
+            .style("opacity", 0.8)
+    }
+
+
+    const render = () => {
         const { links, nodes } = graph;
         link = svg.selectAll(".link")
             .data(links)
@@ -114,21 +142,31 @@ const init = (selector) => {
             .attr("class", "node")
             .style("cursor", "pointer")
             .attr('fill-opacity', (d: d3Types.d3Node) => isOnline(d.device) ? 1 : 0.4)
-            .call(getDarg(simulation));
-
-        node.append("path")
-            .attr("fill", (d: d3Types.d3Node) => getColor(d.device))
-            .attr("d", (d: d3Types.d3Node) => {
-                switch (d.device.type) {
-                    case slsTypes.DeviceType.Coordinator:
-                        return STAR(14, 5);
-                    default:
-                        return CIRCLE(5);
-                }
+            .call(getDarg(simulation))
+            .on("mouseover", mouseover)
+            .on("mousemove", mousemove)
+            .on("mouseleave", mouseleave)
+            .on("dblclick", (d: d3Types.d3Node) => {
+                const id = parseInt(d.id, 10);
+                window.open(`/zigbee?nwkAddr=0x${id.toString(16)}`, '_blank');
             });
 
-        node.append("title").text((d: d3Types.d3Node) => getTitle(d.device));
-        node.append("text").attr("dy", -5).text((d: d3Types.d3Node) => getName(d.device));
+        const pathPicker = (d: d3Types.d3Node) => {
+            switch (d.device.type) {
+                case slsTypes.DeviceType.Coordinator:
+                    return STAR(14, 5);
+                default:
+                    return CIRCLE(5);
+            }
+        };
+        node.append("path")
+            .attr("fill", (d: d3Types.d3Node) => getColor(d.device))
+            .attr("d", pathPicker);
+
+        node.append("text")
+            .attr("dy", -5)
+            .text((d: d3Types.d3Node) => getName(d.device))
+            .style("color", (d: d3Types.d3Node) => getColor(d.device))
 
         edgepaths = svg.selectAll(".edgepath")
             .data(links)
@@ -164,7 +202,7 @@ const init = (selector) => {
         simulation.nodes(nodes);
         (simulation.force("link") as ForceLink<d3Types.d3Node, d3Types.d3Link>).links(links);
         simulation.restart();
-    }
+    };
 };
 document.addEventListener('DOMContentLoaded', () => init("#map"), false);
 

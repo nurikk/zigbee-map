@@ -7,7 +7,7 @@ export const GATEWAY: slsTypes.Device = {
     ManufName: 'SLS gateway',
     ModelId: '',
     st: {
-        linkquality: 1,
+        linkquality: 100,
     },
     friendly_name: 'sls gateway'
 };
