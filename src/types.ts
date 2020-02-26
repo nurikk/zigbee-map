@@ -9,7 +9,7 @@ export namespace d3Types {
     export type d3Link = {
         source: string,
         target: string,
-        linkQuality: number
+        linkQuality: number | undefined
     };
 
     export type d3Graph = {
@@ -25,6 +25,8 @@ export namespace slsTypes {
         tz: string
         ts: number
     };
+
+
     export enum DeviceType {
         EndDevice = "EndDevice",
         Router = "Router",
@@ -36,14 +38,13 @@ export namespace slsTypes {
     }
 
     export type Device = {
-        ieeeAddr: string;
-        last_seen: string;
-        type: DeviceType;
-
-        ManufName: string;
-        ModelId: string;
-        st: DeviceStats;
-        friendly_name?: string;
-        Rtg?: number[],
+        ieeeAddr?: string | undefined;
+        last_seen: string | undefined;
+        type?: DeviceType | undefined;
+        ManufName?: string | undefined;
+        ModelId?: string | undefined;
+        st?: DeviceStats | undefined;
+        friendly_name?: string | undefined;
+        Rtg?: number[] | undefined,
     }
 }

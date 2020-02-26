@@ -4,17 +4,12 @@ export const GATEWAY: slsTypes.Device = {
     ieeeAddr: 'Coordinator node',
     last_seen: (Date.now() / 1000).toString(),
     type: slsTypes.DeviceType.Coordinator,
-    ManufName: 'SLS gateway',
-    ModelId: '',
-    st: {
-        linkquality: 100,
-    },
-    friendly_name: 'sls gateway'
+    ManufName: 'SLS gateway'
 };
 
 
 
-export const STAR = (r1, r2) => {
+export const STAR = (r1: number, r2:number) => {
     const radialLineGenerator: any = d3.radialLine();
     const radialpoints = [
         [0, r1],
@@ -32,7 +27,7 @@ export const STAR = (r1, r2) => {
     return radialLineGenerator(radialpoints);
 };
 
-export const CIRCLE = (radius) => {
+export const CIRCLE = (radius: number) => {
     const circle = d3.path();
     circle.arc(0, 0, radius, 0, Math.PI * 2);
     return circle;

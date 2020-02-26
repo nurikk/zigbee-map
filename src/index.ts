@@ -10,10 +10,10 @@ const colorMap = {
     [slsTypes.DeviceType.EndDevice]: 'green',
 };
 let graph: d3Types.d3Graph;
-let timeInfo: slsTypes.TimeInfo;
+let timeInfo: slsTypes.TimeInfo | undefined;
 const offlineTimeout = 3600 * 2;
 const isOnline = (device: slsTypes.Device): boolean => {
-    if (timeInfo && timeInfo.ts) {
+    if (timeInfo?.ts && device.last_seen) {
         return timeInfo.ts - parseInt(device.last_seen, 10) < offlineTimeout;
     } else {
         return true;
@@ -24,20 +24,36 @@ const getName = (device: slsTypes.Device): string => {
         return '';
     } else {
         const { friendly_name, ieeeAddr } = device;
-        return friendly_name ? friendly_name : `${ieeeAddr.slice(-4)}`;
+        return friendly_name ?? `${ieeeAddr?.slice(-4) ?? 'Unknow device'}`;
     }
 
 }
 const getTooltip = (device: slsTypes.Device): string => {
-    const strings = [
-        `${device.ManufName ? device.ManufName : ''} ${device.ModelId ? device.ModelId: ''}`,
-        device.ieeeAddr,
-        `LinkQuality: ${device.st.linkquality}`
-    ]
+    const strings: string[] = [];
+    if (device.ManufName) {
+        if (device.ModelId) {
+            strings.push(`${device.ManufName} ${device.ModelId}`);
+        } else {
+            strings.push(device.ManufName);
+        }
+    }
+    if (device.ieeeAddr) {
+        strings.push(device.ieeeAddr);
+    }
+    if (device?.st?.linkquality) {
+        strings.push(`LinkQuality: ${device.st.linkquality}`)
+    }
+    if (strings.length == 0) {
+        strings.push("A very strange device...");
+    }
     return strings.join("<br/>");
 };
 const getColor = (device: slsTypes.Device): string => {
-    return colorMap[device.type];
+    if (device.type) {
+        return colorMap[device.type]
+    } else {
+        return '';
+    }
 };
 
 const init = (selector: string) => {
@@ -51,24 +67,25 @@ const init = (selector: string) => {
     svg.attr("viewBox", "0 0 " + width + " " + height)
         .attr("preserveAspectRatio", "xMidYMid meet");
 
-    let node,
-        link,
-        edgepaths,
-        edgelabels;
+    let node: any,
+        link: any,
+        edgepaths: any,
+        edgelabels: any;
 
     const ticked = () => {
         link
-            .attr("x1", (d) => d.source.x)
-            .attr("y1", (d) => d.source.y)
-            .attr("x2", (d) => d.target.x)
-            .attr("y2", (d) => d.target.y);
+            .attr("x1", (d: { source: { x: any; }; }) => d.source.x)
+            .attr("y1", (d: { source: { y: any; }; }) => d.source.y)
+            .attr("x2", (d: { target: { x: any; }; }) => d.target.x)
+            .attr("y2", (d: { target: { y: any; }; }) => d.target.y);
 
         node
-            .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
+            .attr("transform", (d: { x: any; y: any; }) => `translate(${d.x}, ${d.y})`);
 
-        edgepaths.attr('d', (d) => `M ${d.source.x} ${d.source.y} L ${d.target.x} ${d.target.y}`);
 
-        edgelabels.attr('transform', function (d) {
+        edgepaths.attr('d', (d: { source: { x: any; y: any; }; target: { x: any; y: any; }; }) => `M ${d.source.x} ${d.source.y} L ${d.target.x} ${d.target.y}`);
+
+        edgelabels.attr('transform', function (d: { target: { x: number; }; source: { x: number; }; }) {
             if (d.target.x < d.source.x) {
                 const bbox = this.getBBox();
                 const rx = bbox.x + bbox.width / 2;
@@ -103,11 +120,10 @@ const init = (selector: string) => {
         .style("border-width", "2px")
         .style("border-radius", "5px")
         .style("padding", "5px");
-    var mouseover = function (d) {
+    var mouseover = function () {
         Tooltip
             .style("opacity", 1)
         d3.select(this)
-            // .style("stroke", "black")
             .style("opacity", 1)
     }
 
@@ -115,7 +131,7 @@ const init = (selector: string) => {
         .style("top", (d3.event.pageY - 10) + "px")
         .style("left", (d3.event.pageX + 10) + "px");
 
-    var mouseleave = function (d) {
+    var mouseleave = function (d: any) {
         Tooltip
             .style("opacity", 0)
         d3.select(this)
@@ -191,7 +207,7 @@ const init = (selector: string) => {
 
 
         edgelabels.append('textPath')
-            .attr('xlink:href', (d, i) => `#edgepath${i}`)
+            .attr('xlink:href', (d: any, i: any) => `#edgepath${i}`)
             .style("text-anchor", "middle")
             .style("pointer-events", "none")
             .attr("startOffset", "50%")

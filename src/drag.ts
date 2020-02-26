@@ -1,5 +1,5 @@
 
-export const getDarg = (simulation) => {
+export const getDarg = (simulation: any) => {
     return d3.drag()
         .on("start", (d: any) => {
             if (!d3.event.active) {

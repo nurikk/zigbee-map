@@ -12,10 +12,7 @@ export default {
         format: 'iife'
     },
     plugins: [
-        typescript({
-            lib: ["es2017", "dom"],
-            target: "es5"
-        }),
+        typescript(),
         isWatch ? serve(outDir) : null,
         isWatch ? null : terser()
     ]

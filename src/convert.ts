@@ -23,14 +23,14 @@ export const convert = (file: { [k: string]: slsTypes.Device }): d3Types.d3Graph
                 graph.links.push({
                     source: deviceKey,
                     target: route.toString(),
-                    linkQuality: deviceData.st.linkquality
+                    linkQuality: deviceData?.st?.linkquality
                 });
             });
         } else {
             graph.links.push({
                 source: deviceKey,
                 target: coordinator.id,
-                linkQuality: deviceData.st.linkquality
+                linkQuality: deviceData?.st?.linkquality
             });
         }
     });
