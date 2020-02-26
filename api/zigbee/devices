@@ -1019,5 +1019,6 @@
             "voltage": 3.152,
             "battery": 100
         }
-    }
+    },
+    "missing_all": {}
 }
