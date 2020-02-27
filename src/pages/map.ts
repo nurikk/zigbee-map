@@ -1,9 +1,9 @@
-import { d3Types, slsTypes } from "./types";
-import { convert } from "./convert";
+import { d3Types, slsTypes } from "../types";
+import { convert } from "../convert";
 import { ForceLink, keys } from "d3";
-import { getDarg } from "./drag";
-import { STAR, CIRCLE } from "./consts";
-import { getSimulation } from "./simulation";
+import { getDarg } from "../drag";
+import { STAR, CIRCLE } from "../consts";
+import { getSimulation } from "../simulation";
 const colorMap = {
     [slsTypes.DeviceType.Coordinator]: 'blue',
     [slsTypes.DeviceType.Router]: 'blue',
