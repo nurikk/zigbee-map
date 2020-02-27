@@ -6,7 +6,7 @@ const isWatch = !!process.env.ROLLUP_WATCH;
 
 const outDir = 'output';
 export default {
-    input: 'src/index.ts',
+    input: 'src/map.ts',
     output: {
         dir: outDir,
         format: 'iife'
