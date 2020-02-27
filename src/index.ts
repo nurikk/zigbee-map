@@ -20,14 +20,15 @@ const isOnline = (device: slsTypes.Device): boolean => {
     }
 }
 const getName = (device: slsTypes.Device): string => {
-    if (device.type == slsTypes.DeviceType.Coordinator) {
-        return '';
-    } else {
-        const { friendly_name, ieeeAddr } = device;
-        return friendly_name ?? `${ieeeAddr?.slice(-4) ?? 'Unknow device'}`;
+    switch (device.type) {
+        case slsTypes.DeviceType.Coordinator:
+            return ''
+        default:
+            const { friendly_name, ieeeAddr } = device;
+            return friendly_name ?? `${ieeeAddr?.slice(-4) ?? 'Unknow device'}`;
     }
-
 }
+
 const getTooltip = (device: slsTypes.Device): string => {
     const strings: string[] = [];
     if (device.ManufName) {
