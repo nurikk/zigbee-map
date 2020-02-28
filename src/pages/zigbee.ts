@@ -1,22 +1,21 @@
-import { addEvent, callApi } from "../utils";
-
+import { callApi, addEvent } from "../utils";
 const baseUrl = '/zigbee';
 
 const onRenameClick = function () {
     const { ieeeaddr, name } = this.dataset;
-    const result = prompt('Enter new name(new)', name);
+    const result = prompt('Enter new name', name);
     if (result != null) {
         const payload = {
             rename: ieeeaddr,
             new: result
         };
-        callApi(baseUrl, payload, 'POST');
+        callApi(baseUrl, payload, 'POST').then(()=> {
+            window.location.reload();
+        });
     }
 };
 
 const init = () => {
-    console.log('zigbee init');
     addEvent(document, 'click', '[data-role="rename"]', onRenameClick);
 };
-init();
-// document.addEventListener('DOMContentLoaded', init, false);
+document.addEventListener('DOMContentLoaded', init, false);
